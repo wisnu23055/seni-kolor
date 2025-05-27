@@ -70,7 +70,31 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('shipping_name')->label('Penerima'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime('d M Y H:i'),
             ])
-            ->filters([])
+            ->filters([
+                // Filter tanggal mulai & selesai
+                Tables\Filters\Filter::make('periode')
+                    ->form([
+                        Forms\Components\DatePicker::make('start')->label('Tanggal Mulai'),
+                        Forms\Components\DatePicker::make('end')->label('Tanggal Selesai'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        if ($data['start']) {
+                            $query->whereDate('created_at', '>=', $data['start']);
+                        }
+                        if ($data['end']) {
+                            $query->whereDate('created_at', '<=', $data['end']);
+                        }
+                    }),
+                // Filter status
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'processing' => 'Processing',
+                        'completed' => 'Completed',
+                        'cancelled' => 'Cancelled',
+                    ]),
+            ])
             ->actions([
                 Tables\Actions\Action::make('view')
                     ->label('Detail Pesanan')
