@@ -10,7 +10,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
-use Filament\Tables\Columns\Summarizers\Summarizer;
 use Filament\Tables\Columns\Summarizers\Sum;
 
 class TransactionResource extends Resource
@@ -40,10 +39,10 @@ class TransactionResource extends Resource
 
             Forms\Components\Select::make('status')
                 ->options([
-                    'pending' => 'Pending',
-                    'processing' => 'Processing',
-                    'completed' => 'Completed',
-                    'cancelled' => 'Cancelled',
+                    Transaction::STATUS_PENDING => 'Menunggu',
+                    Transaction::STATUS_PROCESSING => 'Diproses',
+                    Transaction::STATUS_COMPLETED => 'Selesai',
+                    Transaction::STATUS_CANCELLED => 'Dibatalkan',
                 ])
                 ->required(),
 
@@ -79,10 +78,10 @@ class TransactionResource extends Resource
                     
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
-                        'primary' => 'pending',
-                        'warning' => 'processing', 
-                        'success' => 'completed',
-                        'danger' => 'cancelled',
+                        'warning' => Transaction::STATUS_PENDING,
+                        'info' => Transaction::STATUS_PROCESSING,
+                        'success' => Transaction::STATUS_COMPLETED,
+                        'danger' => Transaction::STATUS_CANCELLED,
                     ]),
                     
                 Tables\Columns\TextColumn::make('shipping_name')
@@ -111,10 +110,10 @@ class TransactionResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')
                     ->options([
-                        'pending' => 'Pending',
-                        'processing' => 'Processing',
-                        'completed' => 'Completed',
-                        'cancelled' => 'Cancelled',
+                        Transaction::STATUS_PENDING => 'Menunggu',
+                        Transaction::STATUS_PROCESSING => 'Diproses',
+                        Transaction::STATUS_COMPLETED => 'Selesai',
+                        Transaction::STATUS_CANCELLED => 'Dibatalkan',
                     ]),
             ])
             ->actions([
