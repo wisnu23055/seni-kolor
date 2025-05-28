@@ -71,7 +71,6 @@ class TransactionResource extends Resource
                     ->label('Total')
                     ->money('IDR')
                     ->sortable()
-                    // ✅ BENAR - Gunakan Sum summarizer
                     ->summarize(
                         Sum::make()
                             ->money('IDR')
