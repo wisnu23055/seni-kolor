@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Models\Transaction;
+use App\Models\PaymentProof;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -11,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 use Filament\Tables\Columns\Summarizers\Sum;
+use Illuminate\Support\Facades\Storage;
 
 class TransactionResource extends Resource
 {
@@ -83,6 +85,20 @@ class TransactionResource extends Resource
                         'success' => Transaction::STATUS_COMPLETED,
                         'danger' => Transaction::STATUS_CANCELLED,
                     ]),
+
+                //  Kolom Status Bukti Pembayaran
+                Tables\Columns\BadgeColumn::make('payment_proof_status')
+                    ->label('Bukti Bayar')
+                    ->getStateUsing(function (Transaction $record) {
+                        return $record->paymentProof ? 'uploaded' : 'not_uploaded';
+                    })
+                    ->colors([
+                        'success' => 'uploaded',
+                        'danger' => 'not_uploaded',
+                    ])
+                    ->formatStateUsing(function (string $state) {
+                        return $state === 'uploaded' ? 'Ada' : 'Belum';
+                    }),
                     
                 Tables\Columns\TextColumn::make('shipping_name')
                     ->label('Penerima'),
@@ -115,6 +131,20 @@ class TransactionResource extends Resource
                         Transaction::STATUS_COMPLETED => 'Completed',
                         Transaction::STATUS_CANCELLED => 'Cancelled',
                     ]),
+                //  FILTER Bukti Pembayaran
+                Tables\Filters\SelectFilter::make('payment_proof')
+                    ->label('Bukti Pembayaran')
+                    ->options([
+                        'uploaded' => 'Sudah Upload',
+                        'not_uploaded' => 'Belum Upload',
+                    ])
+                    ->query(function ($query, array $data) {
+                        if ($data['value'] === 'uploaded') {
+                            $query->has('paymentProof');
+                        } elseif ($data['value'] === 'not_uploaded') {
+                            $query->doesntHave('paymentProof');
+                        }
+                    }),
             ])
             ->actions([
                 Tables\Actions\Action::make('view')
@@ -123,9 +153,9 @@ class TransactionResource extends Resource
                     ->color('success')
                     ->modalHeading(fn (Transaction $record) => "Detail Pesanan #" . $record->id)
                     ->modalContent(function (Transaction $record) {
-                        $record->load('transactionItems.product', 'user', 'umkm');
+                        $record->load('transactionItems.product', 'user', 'umkm', 'paymentProof');
                         
-                        // CSS untuk dukungan mode gelap
+                        // CSS untuk dukungan mode gelap + bukti pembayaran
                         $darkModeStyle = '
                         <style>
                             .detail-section {
@@ -154,6 +184,15 @@ class TransactionResource extends Resource
                             
                             .detail-label {
                                 font-weight: 500;
+                            }
+                            
+                            .payment-proof-img {
+                                max-width: 300px;
+                                height: auto;
+                                border: 1px solid #ddd;
+                                border-radius: 8px;
+                                margin-top: 0.5rem;
+                                cursor: pointer;
                             }
                             
                             .detail-table {
@@ -190,6 +229,16 @@ class TransactionResource extends Resource
                             .detail-table tfoot {
                                 font-weight: 500;
                             }
+                            
+                            .status-uploaded {
+                                color: #16a34a;
+                                font-weight: 500;
+                            }
+                            
+                            .status-not-uploaded {
+                                color: #dc2626;
+                                font-weight: 500;
+                            }
                         </style>
                         ';
                         
@@ -204,6 +253,25 @@ class TransactionResource extends Resource
                         $itemsHtml .= '<div><span class="detail-label">Tanggal:</span> ' . $record->created_at->format('d M Y H:i') . '</div>';
                         $itemsHtml .= '<div><span class="detail-label">Status:</span> ' . ucfirst($record->status) . '</div>';
                         $itemsHtml .= '</div>';
+                        $itemsHtml .= '</div>';
+
+                        //  SECTION  Bukti Pembayaran
+                        $itemsHtml .= '<div class="detail-section">';
+                        $itemsHtml .= '<div class="detail-title">Bukti Pembayaran</div>';
+                        if ($record->paymentProof) {
+                            $itemsHtml .= '<div><span class="detail-label">Status:</span> <span class="status-uploaded">Sudah Upload</span></div>';
+                            $itemsHtml .= '<div><span class="detail-label">Tanggal Upload:</span> ' . $record->paymentProof->created_at->format('d M Y H:i') . '</div>';
+                            if ($record->paymentProof->notes) {
+                                $itemsHtml .= '<div><span class="detail-label">Catatan:</span> ' . $record->paymentProof->notes . '</div>';
+                            }
+                            if ($record->paymentProof->image) {
+                                $imagePath = asset('storage/' . $record->paymentProof->image);
+                                $itemsHtml .= '<div><span class="detail-label">Foto:</span><br>';
+                                $itemsHtml .= '<img src="' . $imagePath . '" alt="Bukti Pembayaran" class="payment-proof-img" onclick="window.open(\'' . $imagePath . '\', \'_blank\')"></div>';
+                            }
+                        } else {
+                            $itemsHtml .= '<div><span class="detail-label">Status:</span> <span class="status-not-uploaded">Belum Upload</span></div>';
+                        }
                         $itemsHtml .= '</div>';
                         
                         // Detail pengiriman
@@ -256,9 +324,69 @@ class TransactionResource extends Resource
                         
                         return new HtmlString($itemsHtml);
                     })
-                    ->modalSubmitAction(false) // Menghilangkan tombol submit default
-                    ->modalCancelActionLabel('Tutup') // Mengubah label tombol cancel menjadi "Tutup"
-                    ->modalWidth('4xl'),
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->modalWidth('5xl'), // Lebih lebar untuk menampung gambar
+
+                //Upload Bukti Pembayaran
+                Tables\Actions\Action::make('upload_payment_proof')
+                    ->label('Edite Bukti')
+                    ->icon('heroicon-o-camera')
+                    ->color('warning')
+                    ->visible(fn (Transaction $record) => !$record->paymentProof) // Hanya tampil jika belum ada bukti
+                    ->form([
+                        Forms\Components\FileUpload::make('image')
+                            ->label('Foto Bukti Pembayaran')
+                            ->image()
+                            ->directory('payment-proofs')
+                            ->required()
+                            ->maxSize(5120) // 5MB
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg']),
+                        Forms\Components\Textarea::make('notes')
+                            ->label('Catatan (Opsional)')
+                            ->placeholder('Catatan tambahan tentang pembayaran...')
+                            ->rows(3),
+                    ])
+                    ->action(function (Transaction $record, array $data) {
+                        PaymentProof::create([
+                            'transaction_id' => $record->id,
+                            'image' => $data['image'],
+                            'notes' => $data['notes'] ?? null,
+                        ]);
+                        
+                        // Opsional: Update status transaksi menjadi processing
+                        if ($record->status === Transaction::STATUS_PENDING) {
+                            $record->update(['status' => Transaction::STATUS_PROCESSING]);
+                        }
+                    })
+                    ->successNotificationTitle('Bukti pembayaran berhasil diupload'),
+
+                //  Lihat Bukti Pembayaran
+                Tables\Actions\Action::make('view_payment_proof')
+                    ->label('Lihat Bukti')
+                    ->icon('heroicon-o-photo')
+                    ->color('info')
+                    ->visible(fn (Transaction $record) => $record->paymentProof) // Hanya tampil jika ada bukti
+                    ->modalHeading('Bukti Pembayaran')
+                    ->modalContent(function (Transaction $record) {
+                        $proof = $record->paymentProof;
+                        $imagePath = asset('storage/' . $proof->image);
+                        
+                        $content = '<div style="text-align: center;">';
+                        $content .= '<img src="' . $imagePath . '" alt="Bukti Pembayaran" style="max-width: 100%; height: auto; border-radius: 8px;">';
+                        if ($proof->notes) {
+                            $content .= '<div style="margin-top: 1rem; padding: 1rem; background-color: #f3f4f6; border-radius: 8px;">';
+                            $content .= '<strong>Catatan:</strong><br>' . nl2br($proof->notes);
+                            $content .= '</div>';
+                        }
+                        $content .= '</div>';
+                        
+                        return new HtmlString($content);
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->modalWidth('3xl'),
+
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
