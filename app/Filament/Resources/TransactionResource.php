@@ -326,66 +326,73 @@ class TransactionResource extends Resource
                     })
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Tutup')
-                    ->modalWidth('5xl'), // Lebih lebar untuk menampung gambar
+                    ->modalWidth('5xl'),
 
-                //Upload Bukti Pembayaran
-                Tables\Actions\Action::make('upload_payment_proof')
-                    ->label('Edite Bukti')
+                //  Edit Bukti (menggantikan kedua tombol sebelumnya)
+                Tables\Actions\Action::make('edit_payment_proof')
+                    ->label('Edit Bukti')
                     ->icon('heroicon-o-camera')
                     ->color('warning')
-                    ->visible(fn (Transaction $record) => !$record->paymentProof) // Hanya tampil jika belum ada bukti
-                    ->form([
-                        Forms\Components\FileUpload::make('image')
-                            ->label('Foto Bukti Pembayaran')
-                            ->image()
-                            ->directory('payment-proofs')
-                            ->required()
-                            ->maxSize(5120) // 5MB
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg']),
-                        Forms\Components\Textarea::make('notes')
-                            ->label('Catatan (Opsional)')
-                            ->placeholder('Catatan tambahan tentang pembayaran...')
-                            ->rows(3),
-                    ])
+                    //  Hapus kondisi visible - tampil untuk SEMUA status pesanan
+                    ->form(function (Transaction $record) {
+                        return [
+                            Forms\Components\FileUpload::make('image')
+                                ->label('Foto Bukti Pembayaran')
+                                ->image()
+                                ->directory('payment-proofs')
+                                ->required()
+                                ->maxSize(5120) // 5MB
+                                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg'])
+                                //  Pre-fill dengan gambar yang sudah ada (jika ada)
+                                ->default($record->paymentProof?->image),
+                            Forms\Components\Textarea::make('notes')
+                                ->label('Catatan (Opsional)')
+                                ->placeholder('Catatan tambahan tentang pembayaran...')
+                                ->rows(3)
+                                //  Pre-fill dengan catatan yang sudah ada (jika ada)
+                                ->default($record->paymentProof?->notes),
+                        ];
+                    })
+                    ->fillForm(function (Transaction $record) {
+                        //  Pre-fill form dengan data yang sudah ada
+                        return [
+                            'image' => $record->paymentProof?->image,
+                            'notes' => $record->paymentProof?->notes,
+                        ];
+                    })
                     ->action(function (Transaction $record, array $data) {
-                        PaymentProof::create([
-                            'transaction_id' => $record->id,
-                            'image' => $data['image'],
-                            'notes' => $data['notes'] ?? null,
-                        ]);
-                        
-                        // Opsional: Update status transaksi menjadi processing
-                        if ($record->status === Transaction::STATUS_PENDING) {
-                            $record->update(['status' => Transaction::STATUS_PROCESSING]);
+                        if ($record->paymentProof) {
+                            //  UPDATE: Jika sudah ada bukti pembayaran
+                            $record->paymentProof->update([
+                                'image' => $data['image'],
+                                'notes' => $data['notes'] ?? null,
+                            ]);
+                            
+                            // Notifikasi berbeda untuk update
+                            \Filament\Notifications\Notification::make()
+                                ->title('Bukti pembayaran berhasil diperbarui')
+                                ->success()
+                                ->send();
+                        } else {
+                            //  CREATE: Jika belum ada bukti pembayaran
+                            PaymentProof::create([
+                                'transaction_id' => $record->id,
+                                'image' => $data['image'],
+                                'notes' => $data['notes'] ?? null,
+                            ]);
+                            
+                            // Update status ke processing hanya jika masih pending
+                            if ($record->status === Transaction::STATUS_PENDING) {
+                                $record->update(['status' => Transaction::STATUS_PROCESSING]);
+                            }
+                            
+                            // Notifikasi berbeda untuk upload baru
+                            \Filament\Notifications\Notification::make()
+                                ->title('Bukti pembayaran berhasil diupload')
+                                ->success()
+                                ->send();
                         }
-                    })
-                    ->successNotificationTitle('Bukti pembayaran berhasil diupload'),
-
-                //  Lihat Bukti Pembayaran
-                Tables\Actions\Action::make('view_payment_proof')
-                    ->label('Lihat Bukti')
-                    ->icon('heroicon-o-photo')
-                    ->color('info')
-                    ->visible(fn (Transaction $record) => $record->paymentProof) // Hanya tampil jika ada bukti
-                    ->modalHeading('Bukti Pembayaran')
-                    ->modalContent(function (Transaction $record) {
-                        $proof = $record->paymentProof;
-                        $imagePath = asset('storage/' . $proof->image);
-                        
-                        $content = '<div style="text-align: center;">';
-                        $content .= '<img src="' . $imagePath . '" alt="Bukti Pembayaran" style="max-width: 100%; height: auto; border-radius: 8px;">';
-                        if ($proof->notes) {
-                            $content .= '<div style="margin-top: 1rem; padding: 1rem; background-color: #f3f4f6; border-radius: 8px;">';
-                            $content .= '<strong>Catatan:</strong><br>' . nl2br($proof->notes);
-                            $content .= '</div>';
-                        }
-                        $content .= '</div>';
-                        
-                        return new HtmlString($content);
-                    })
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Tutup')
-                    ->modalWidth('3xl'),
+                    }),
 
                 Tables\Actions\EditAction::make(),
             ])
