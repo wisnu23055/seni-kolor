@@ -10,21 +10,19 @@ class Transaction extends Model
     use HasFactory;
 
     /**
-     * Status konstanta untuk konsistensi
+     * Status konstanta untuk konsistensi (sesuai database)
      */
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';
-    const STATUS_SHIPPED = 'shipped';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
     
     /**
-     * Array semua kemungkinan status
+     * Array semua kemungkinan status (sesuai database)
      */
     const STATUSES = [
         self::STATUS_PENDING,
         self::STATUS_PROCESSING,
-        self::STATUS_SHIPPED,
         self::STATUS_COMPLETED,
         self::STATUS_CANCELLED,
     ];
@@ -95,7 +93,6 @@ class Transaction extends Model
         $badgeColors = [
             self::STATUS_PENDING => 'warning',
             self::STATUS_PROCESSING => 'info',
-            self::STATUS_SHIPPED => 'primary',
             self::STATUS_COMPLETED => 'success',
             self::STATUS_CANCELLED => 'danger',
         ];
@@ -103,7 +100,6 @@ class Transaction extends Model
         $statusLabels = [
             self::STATUS_PENDING => 'Menunggu',
             self::STATUS_PROCESSING => 'Diproses',
-            self::STATUS_SHIPPED => 'Dikirim',
             self::STATUS_COMPLETED => 'Selesai',
             self::STATUS_CANCELLED => 'Dibatalkan',
         ];
@@ -128,14 +124,6 @@ class Transaction extends Model
     public function scopeProcessing($query)
     {
         return $query->where('status', self::STATUS_PROCESSING);
-    }
-    
-    /**
-     * Scope a query to only include shipped transactions.
-     */
-    public function scopeShipped($query)
-    {
-        return $query->where('status', self::STATUS_SHIPPED);
     }
     
     /**
