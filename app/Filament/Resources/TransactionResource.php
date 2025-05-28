@@ -39,10 +39,10 @@ class TransactionResource extends Resource
 
             Forms\Components\Select::make('status')
                 ->options([
-                    Transaction::STATUS_PENDING => 'Menunggu',
-                    Transaction::STATUS_PROCESSING => 'Diproses',
-                    Transaction::STATUS_COMPLETED => 'Selesai',
-                    Transaction::STATUS_CANCELLED => 'Dibatalkan',
+                    Transaction::STATUS_PENDING => 'Pending',
+                    Transaction::STATUS_PROCESSING => 'Processing',
+                    Transaction::STATUS_COMPLETED => 'Completed',
+                    Transaction::STATUS_CANCELLED => 'Cancelled',
                 ])
                 ->required(),
 
@@ -110,10 +110,10 @@ class TransactionResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')
                     ->options([
-                        Transaction::STATUS_PENDING => 'Menunggu',
-                        Transaction::STATUS_PROCESSING => 'Diproses',
-                        Transaction::STATUS_COMPLETED => 'Selesai',
-                        Transaction::STATUS_CANCELLED => 'Dibatalkan',
+                        Transaction::STATUS_PENDING => 'Pending',
+                        Transaction::STATUS_PROCESSING => 'Processing',
+                        Transaction::STATUS_COMPLETED => 'Completed',
+                        Transaction::STATUS_CANCELLED => 'Cancelled',
                     ]),
             ])
             ->actions([
