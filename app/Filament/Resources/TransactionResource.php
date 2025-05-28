@@ -10,6 +10,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
+use Filament\Tables\Columns\Summarizers\Summarizer;
+use Filament\Tables\Columns\Summarizers\Sum;
 
 class TransactionResource extends Resource
 {
@@ -59,19 +61,40 @@ class TransactionResource extends Resource
                     ->label('ID Pesanan')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('user.name')->label('User')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('total_amount')->money('IDR'),
-                Tables\Columns\BadgeColumn::make('status')->colors([
-                    'primary' => 'pending',
-                    'warning' => 'processing',
-                    'success' => 'completed',
-                    'danger' => 'cancelled',
-                ]),
-                Tables\Columns\TextColumn::make('shipping_name')->label('Penerima'),
-                Tables\Columns\TextColumn::make('created_at')->dateTime('d M Y H:i'),
+                    
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('User')
+                    ->sortable()
+                    ->searchable(),
+                    
+                Tables\Columns\TextColumn::make('total_amount')
+                    ->label('Total')
+                    ->money('IDR')
+                    ->sortable()
+                    // ✅ BENAR - Gunakan Sum summarizer
+                    ->summarize(
+                        Sum::make()
+                            ->money('IDR')
+                            ->label('Total Penjualan')
+                    ),
+                    
+                Tables\Columns\BadgeColumn::make('status')
+                    ->colors([
+                        'primary' => 'pending',
+                        'warning' => 'processing', 
+                        'success' => 'completed',
+                        'danger' => 'cancelled',
+                    ]),
+                    
+                Tables\Columns\TextColumn::make('shipping_name')
+                    ->label('Penerima'),
+                    
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Tanggal')
+                    ->dateTime('d M Y H:i'),
             ])
             ->filters([
-                // Filter tanggal mulai & selesai
+                // Filter periode
                 Tables\Filters\Filter::make('periode')
                     ->form([
                         Forms\Components\DatePicker::make('start')->label('Tanggal Mulai'),
