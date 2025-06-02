@@ -27,7 +27,7 @@
             </div>
         </div>
         
-        <!-- Stats Cards -->
+        <!-- Stats Cards - PERBAIKAN -->
         <div class="col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -37,7 +37,10 @@
                             <i class="fas fa-shopping-cart"></i>
                         </div>
                     </div>
-                    <h2 class="display-6 fw-bold mb-0">{{ $transactions->count() }}</h2>
+                    {{-- PERBAIKAN: Cek apakah $transactions adalah collection atau array --}}
+                    <h2 class="display-6 fw-bold mb-0">
+                        {{ is_array($transactions) ? count($transactions) : $transactions->count() }}
+                    </h2>
                     <p class="card-text text-muted">Total pesanan</p>
                 </div>
             </div>
@@ -52,7 +55,14 @@
                             <i class="fas fa-clock"></i>
                         </div>
                     </div>
-                    <h2 class="display-6 fw-bold mb-0">{{ $transactions->where('status', 'pending')->count() }}</h2>
+                    {{-- PERBAIKAN: Handle kedua kemungkinan --}}
+                    <h2 class="display-6 fw-bold mb-0">
+                    @if(is_array($transactions))
+                        {{ count(array_filter($transactions, function($tx) { return $tx->status == 'pending'; })) }}
+                    @else
+                        {{ $transactions->where('status', 'pending')->count() }}
+                    @endif
+                    </h2>
                     <p class="card-text text-muted">Pesanan dalam proses</p>
                 </div>
             </div>
@@ -67,7 +77,14 @@
                             <i class="fas fa-check-circle"></i>
                         </div>
                     </div>
-                    <h2 class="display-6 fw-bold mb-0">{{ $transactions->where('status', 'completed')->count() }}</h2>
+                    {{-- PERBAIKAN: Handle kedua kemungkinan --}}
+                    <h2 class="display-6 fw-bold mb-0">
+                    @if(is_array($transactions))
+                        {{ count(array_filter($transactions, function($tx) { return $tx->status == 'completed'; })) }}
+                    @else
+                        {{ $transactions->where('status', 'completed')->count() }}
+                    @endif
+                    </h2>
                     <p class="card-text text-muted">Pesanan selesai</p>
                 </div>
             </div>
@@ -82,27 +99,32 @@
                             <i class="fas fa-shopping-basket"></i>
                         </div>
                     </div>
-                    <h2 class="display-6 fw-bold mb-0">{{ $cartItems->count() }}</h2>
+                    {{-- PERBAIKAN: Gunakan count() function untuk array --}}
+                    <h2 class="display-6 fw-bold mb-0">
+                    {{ is_array($cartItems) ? count($cartItems) : $cartItems->count() }}
+                    </h2>
                     <p class="card-text text-muted">Item dalam keranjang</p>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Transaksi Terbaru -->
+    <!-- Transaksi Terbaru - PERBAIKAN -->
     <div class="row mt-5">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="card-title fw-bold mb-0">Transaksi Terbaru</h5>
-                        @if($transactions->isNotEmpty())
+                        {{-- PERBAIKAN: Cek apakah ada transaksi --}}
+                        @if((is_array($transactions) && count($transactions) > 0) || (!is_array($transactions) && $transactions->isNotEmpty()))
                             <a href="{{ route('transactions.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
                         @endif
                     </div>
                 </div>
                 <div class="card-body">
-                    @if($transactions->isEmpty())
+                    {{-- PERBAIKAN: Cek empty dengan lebih aman --}}
+                    @if((is_array($transactions) && count($transactions) == 0) || (!is_array($transactions) && $transactions->isEmpty()))
                         <div class="text-center py-5">
                             <div class="text-muted mb-3">
                                 <i class="fas fa-receipt fa-3x"></i>
@@ -124,7 +146,12 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($transactions->take(5) as $tx)
+                                    {{-- PERBAIKAN: Handle array dan collection --}}
+                                    @php
+                                        $transactionsList = is_array($transactions) ? array_slice($transactions, 0, 5) : $transactions->take(5);
+                                    @endphp
+                                    
+                                    @forelse($transactionsList as $tx)
                                         <tr>
                                             <td class="fw-semibold">#{{ $tx->id }}</td>
                                             <td>{{ $tx->created_at->format('d M Y') }}</td>
@@ -146,7 +173,11 @@
                                                 <a href="{{ route('transactions.show', $tx->id) }}" class="btn btn-sm btn-outline-primary">Detail</a>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4">Tidak ada transaksi</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -156,20 +187,22 @@
         </div>
     </div>
     
-    <!-- Keranjang Belanja -->
+    <!-- Keranjang Belanja - PERBAIKAN -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="card-title fw-bold mb-0">Keranjang Belanja</h5>
-                        @if($cartItems->isNotEmpty())
+                        {{-- PERBAIKAN: Cek apakah ada item di keranjang --}}
+                        @if((is_array($cartItems) && count($cartItems) > 0) || (!is_array($cartItems) && $cartItems->isNotEmpty()))
                             <a href="{{ route('cart.index') }}" class="btn btn-sm btn-outline-primary">Lihat Keranjang</a>
                         @endif
                     </div>
                 </div>
                 <div class="card-body">
-                    @if($cartItems->isEmpty())
+                    {{-- PERBAIKAN: Cek empty dengan lebih aman --}}
+                    @if((is_array($cartItems) && count($cartItems) == 0) || (!is_array($cartItems) && $cartItems->isEmpty()))
                         <div class="text-center py-5">
                             <div class="text-muted mb-3">
                                 <i class="fas fa-shopping-cart fa-3x"></i>
@@ -190,7 +223,13 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($cartItems->take(3) as $item)
+                                    {{-- PERBAIKAN: Handle array dan collection --}}
+                                    @php
+                                        $cartItemsList = is_array($cartItems) ? array_slice($cartItems, 0, 3) : $cartItems->take(3);
+                                        $totalItems = is_array($cartItems) ? count($cartItems) : $cartItems->count();
+                                    @endphp
+                                    
+                                    @forelse($cartItemsList as $item)
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
@@ -208,20 +247,27 @@
                                             <td>{{ $item->quantity }}</td>
                                             <td class="fw-semibold">Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}</td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4">Tidak ada item dalam keranjang</td>
+                                        </tr>
+                                    @endforelse
                                     
-                                    @if($cartItems->count() > 3)
+                                    @if($totalItems > 3)
                                         <tr>
                                             <td colspan="4" class="text-center">
-                                                <a href="{{ route('cart.index') }}" class="text-decoration-none">Lihat {{ $cartItems->count() - 3 }} item lainnya...</a>
+                                                <a href="{{ route('cart.index') }}" class="text-decoration-none">Lihat {{ $totalItems - 3 }} item lainnya...</a>
                                             </td>
                                         </tr>
                                     @endif
                                     
-                                    <tr class="table-light">
-                                        <td colspan="3" class="text-end fw-bold">Total:</td>
-                                        <td class="fw-bold text-primary">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</td>
-                                    </tr>
+                                    {{-- PERBAIKAN: Cek apakah variabel ada --}}
+                                    @if(isset($totalBelanja))
+                                        <tr class="table-light">
+                                            <td colspan="3" class="text-end fw-bold">Total:</td>
+                                            <td class="fw-bold text-primary">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</td>
+                                        </tr>
+                                    @endif
                                 </tbody>
                             </table>
                             
