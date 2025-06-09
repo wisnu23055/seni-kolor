@@ -104,59 +104,27 @@
         </div>
     </div>
     
-    <!--  PERBAIKAN: Update Social Media Links -->
     <div class="row mt-5">
         <div class="col-12 text-center">
             <h3 class="fw-bold mb-4">Ikuti Kami</h3>
             <div class="d-flex justify-content-center gap-4">
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Facebook">
-                    <div class="bg-primary text-white rounded-circle p-3 social-icon">
+                <a href="#" class="text-decoration-none">
+                    <div class="bg-primary text-white rounded-circle p-3">
                         <i class="fab fa-facebook-f"></i>
                     </div>
                 </a>
-                
-
-                <a href="https://www.instagram.com/thetyanode/" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Instagram">
-                    <div class="bg-danger text-white rounded-circle p-3 social-icon">
+                <a href="#" class="text-decoration-none">
+                    <div class="bg-danger text-white rounded-circle p-3">
                         <i class="fab fa-instagram"></i>
                     </div>
                 </a>
-                
-                <a href="https://tiktok.com/@projek.informatika" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="TikTok">
-                    <div class="bg-dark text-white rounded-circle p-3 social-icon">
+                <a href="#" class="text-decoration-none">
+                    <div class="bg-dark text-white rounded-circle p-3">
                         <i class="fab fa-tiktok"></i>
-                    </div>
-                </a>
-                
-
-                <a href="https://youtu.be/dQw4w9WgXcQ?si=wd43pJELGTUBE_Kk" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="YouTube">
-                    <div class="bg-danger text-white rounded-circle p-3 social-icon">
-                        <i class="fab fa-youtube"></i>
                     </div>
                 </a>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Tambah CSS untuk hover effect -->
-<style>
-.social-icon {
-    transition: all 0.3s ease;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.social-icon:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-.social-icon i {
-    font-size: 1.2rem;
-}
-</style>
 @endsection
