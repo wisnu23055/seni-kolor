@@ -1,0 +1,751 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Seni Kolor API",
+        "description": "API untuk aplikasi Seni Kolor dengan berbagai metode autentikasi: JWT Bearer Token, Basic Auth, dan API Key.\n *                  \n *                  ## Cara Testing di Swagger UI:\n *                  \n *                  ### 1. JWT Authentication (Bearer Token)\n *                  - Klik endpoint `/api/login` untuk mendapatkan token\n *                  - Input credentials: admin@example.com/password atau customer@example.com/password\n *                  - Copy `access_token` dari response\n *                  - Klik tombol 'Authorize' (🔒) di kanan atas\n *                  - Di bagian 'bearerAuth', masukkan: Bearer {your_token}\n *                  - Klik 'Authorize' → Sekarang bisa test semua endpoint JWT\n *                  \n *                  ### 2. Basic Authentication\n *                  - Klik tombol 'Authorize' (🔒) di kanan atas\n *                  - Di bagian 'basicAuth', masukkan:\n *                    * Username: admin@example.com atau customer@example.com\n *                    * Password: password\n *                  - Klik 'Authorize' → Sekarang bisa test endpoint Basic Auth (Read Only)\n *                  \n *                  ### 3. API Key Authentication\n *                  - Klik tombol 'Authorize' (🔒) di kanan atas\n *                  - Di bagian 'apiKeyAuth', masukkan: HQldYrXmCAojpQfYzRxJXqbx9vg9EG4d\n *                  - Klik 'Authorize' → Sekarang bisa test endpoint `/api/secure-data`\n *                  \n *                  ## Role Permission:\n *                  - **Admin**: Bisa CRUD semua endpoint JWT + Read endpoint Basic Auth\n *                  - **Customer**: Hanya bisa Read endpoint JWT & Basic Auth\n *                  - **API Key**: Hanya bisa akses endpoint `/api/secure-data`",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Laravel Development Server"
+        }
+    ],
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "JWT Auth"
+                ],
+                "summary": "Login user",
+                "operationId": "222b2625838e3c57e017987f73598fda",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "admin@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string"
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "bearer"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer",
+                                            "example": 3600
+                                        },
+                                        "scope": {
+                                            "type": "string",
+                                            "example": "admin"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "JWT Auth"
+                ],
+                "summary": "Get current user profile",
+                "operationId": "8367feff40ba10e43187792cad3132c1",
+                "responses": {
+                    "200": {
+                        "description": "User profile",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "created_at": {
+                                            "type": "string"
+                                        },
+                                        "updated_at": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products": {
+            "get": {
+                "tags": [
+                    "JWT Auth"
+                ],
+                "summary": "List semua produk (JWT Auth)",
+                "operationId": "7cd9d394f726672223f216b77acab086",
+                "responses": {
+                    "200": {
+                        "description": "List Produk",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "count": {
+                                            "type": "integer"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Product"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "JWT Auth"
+                ],
+                "summary": "Buat produk baru (Admin Only)",
+                "operationId": "e83af3dd12f9ebc4ad755304893c016f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "price",
+                                    "description",
+                                    "category_id",
+                                    "umkm_id",
+                                    "stock"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Celana Premium"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 150000
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Celana dengan motif tradisional"
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "umkm_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "image": {
+                                        "description": "Upload file gambar",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "stock": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "is_featured": {
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Produk berhasil dibuat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Product"
+                                        },
+                                        "image_url": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Hanya admin yang dapat membuat produk"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{id}": {
+            "get": {
+                "tags": [
+                    "JWT Auth"
+                ],
+                "summary": "Detail produk (JWT Auth)",
+                "operationId": "fa07b5c9bbd4d51f1f3763ca56e0908b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail Produk",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Product"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Produk tidak ditemukan"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "JWT Auth"
+                ],
+                "summary": "Delete produk (Admin Only)",
+                "operationId": "bae80a1b7d88ec2b8f025a048aa00f86",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Produk berhasil dihapus"
+                    },
+                    "404": {
+                        "description": "Produk tidak ditemukan"
+                    },
+                    "403": {
+                        "description": "Hanya admin yang dapat menghapus produk"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{id}/update": {
+            "post": {
+                "tags": [
+                    "JWT Auth"
+                ],
+                "summary": "Update produk dengan file upload (Admin Only)",
+                "operationId": "c3f1a3c36e89fe2d3866aa0dc38d884b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Celana Premium Updated"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 175000
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Celana premium updated"
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "umkm_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "image": {
+                                        "description": "Upload file gambar baru",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "stock": {
+                                        "type": "integer",
+                                        "example": 15
+                                    },
+                                    "is_featured": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Produk berhasil diupdate"
+                    },
+                    "404": {
+                        "description": "Produk tidak ditemukan"
+                    },
+                    "403": {
+                        "description": "Hanya admin yang dapat mengupdate produk"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products-basic": {
+            "get": {
+                "tags": [
+                    "Basic Auth"
+                ],
+                "summary": "List semua produk (Basic Auth - Read Only)",
+                "description": "Endpoint untuk mendapatkan semua produk menggunakan Basic Authentication. Admin dan Customer bisa akses endpoint ini untuk read-only.",
+                "operationId": "584002d874212e509fce7a073cc76d44",
+                "responses": {
+                    "200": {
+                        "description": "List Produk Berhasil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "List Produk (Basic Auth - Read Only)"
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "auth_method": {
+                                            "type": "string",
+                                            "example": "Basic Authentication"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Product"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Username/Password salah",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products-basic/{id}": {
+            "get": {
+                "tags": [
+                    "Basic Auth"
+                ],
+                "summary": "Detail produk (Basic Auth - Read Only)",
+                "description": "Endpoint untuk mendapatkan detail produk menggunakan Basic Authentication. Admin dan Customer bisa akses endpoint ini untuk read-only.",
+                "operationId": "dee9f675de666f5819828ec277e425d4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID produk yang ingin dilihat detailnya",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail Produk Berhasil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Detail Produk (Basic Auth - Read Only)"
+                                        },
+                                        "auth_method": {
+                                            "type": "string",
+                                            "example": "Basic Authentication"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Product"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Produk tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Produk tidak ditemukan"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Username/Password salah",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/secure-data": {
+            "get": {
+                "tags": [
+                    "API Key"
+                ],
+                "summary": "Get products using API Key",
+                "description": "Endpoint khusus untuk testing API Key authentication. Gunakan header 'senikolor-api-key' dengan value yang valid dari environment variable.",
+                "operationId": "f9d821abdfb33afa6f86be8c121c6b25",
+                "responses": {
+                    "200": {
+                        "description": "Success - Data berhasil diambil dengan API Key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "List Produk (API Key)"
+                                        },
+                                        "authenticated_via": {
+                                            "type": "string",
+                                            "example": "API Key"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Product"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid API Key - API Key tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Invalid API Key"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Product": {
+                "required": [
+                    "id",
+                    "name",
+                    "price",
+                    "description",
+                    "stock"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Celana Premium"
+                    },
+                    "price": {
+                        "type": "number",
+                        "example": 250000
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Celana dengan motif tradisional"
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "umkm_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "products/1234567890_celana.jpg"
+                    },
+                    "stock": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "is_featured": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "JWT Bearer token authentication",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            },
+            "basicAuth": {
+                "type": "http",
+                "description": "Basic HTTP authentication",
+                "scheme": "basic"
+            },
+            "apiKeyAuth": {
+                "type": "apiKey",
+                "description": "API Key authentication",
+                "name": "senikolor-api-key",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "JWT Auth",
+            "description": "JWT Auth"
+        },
+        {
+            "name": "Basic Auth",
+            "description": "Basic Auth"
+        },
+        {
+            "name": "API Key",
+            "description": "API Key"
+        }
+    ]
+}
