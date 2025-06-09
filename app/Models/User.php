@@ -34,6 +34,16 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(UMKM::class);
     }
 
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     public function getJWTIdentifier() 
     { 
         return $this->getKey(); 
