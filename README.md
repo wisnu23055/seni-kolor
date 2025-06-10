@@ -1,5 +1,3 @@
-Collecting workspace information# 🎨 Seni Kolor - E-Commerce Platform
-
 <p align="center">
   <img src="screenshots/logo.png"alt="Seni Kolor Logo" width="400">
 </p>
