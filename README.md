@@ -1,7 +1,7 @@
 Collecting workspace information# 🎨 Seni Kolor - E-Commerce Platform
 
 <p align="center">
-  <img src="https://via.placeholder.com/400x150/4F46E5/FFFFFF?text=SENI+KOLOR" alt="Seni Kolor Logo" width="400">
+  <img src="screenshots/logo.png"alt="Seni Kolor Logo" width="400">
 </p>
 
 <p align="center">
@@ -61,17 +61,17 @@ Collecting workspace information# 🎨 Seni Kolor - E-Commerce Platform
 
 ### 🏠 **Homepage**
 <p align="center">
-  <img src="https://via.placeholder.com/800x400/E5E7EB/374151?text=Homepage+Demo" alt="Homepage" width="800">
+  <img src="screenshots/homepage.png" alt="Homepage" width="800">
 </p>
 
 ### 🛍️ **Product Catalog**
 <p align="center">
-  <img src="https://via.placeholder.com/800x400/F3F4F6/374151?text=Product+Catalog" alt="Product Catalog" width="800">
+  <img src="screenshots/product.png alt="Product Catalog" width="800">
 </p>
 
 ### 📊 **Admin Dashboard**
 <p align="center">
-  <img src="https://via.placeholder.com/800x400/EFF6FF/1E40AF?text=Admin+Dashboard" alt="Admin Dashboard" width="800">
+  <img src="screenshots/admin.png" alt="Admin Dashboard" width="800">
 </p>
 
 ---
