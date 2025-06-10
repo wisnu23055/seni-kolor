@@ -93,7 +93,3 @@
 - ![Postman](https://img.shields.io/badge/Postman-FF6C37?style=flat&logo=postman&logoColor=white) **Postman** - API Testing
 
 ---
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Made_in-Indonesia-FF0000?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAGCAYAAADNll3IAAAABHNCSVQICAgIfAhkiAAAAFhJREFUGJVjYMAH/iPLMTAwMBBh0j8Gg6kMDAwMDAwMjAxE6EVzHQMDAwMDAwMjIQIIsYGBgYGBgYERKY4FHQcPxgYGBgYGBgYGFhQGJkZGBgaGf/8ZGBgYAKgoBxmU4p8cAAAAAElFTkSuQmCC" alt="Made in Indonesia">
-</p>
