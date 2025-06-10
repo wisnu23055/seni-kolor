@@ -64,7 +64,7 @@
 
 ### 🛍️ **Product Catalog**
 <p align="center">
-  <img src="screenshots/product.png alt="Product Catalog" width="800">
+  <img src="screenshots/product.png" alt="Product Catalog" width="800">
 </p>
 
 ### 📊 **Admin Dashboard**
